@@ -1,6 +1,13 @@
 <template>
   <div class="dashboard-container">
     <div class="dashboard-text">name: {{ user.name }}</div>
+    <el-input v-model="uploadParam.path" placeholder="请输入路径" />
+    <el-upload ref="file-upload" :headers="uploadHeader" :data="uploadParam" :multiple="true" :on-success="onSuccess" :on-error="onError" :action="uploadUrl" drag>
+      <i class="el-icon-upload" />
+      <div class="el-upload__text">
+        将文件拖到此处，或<em>点击上传</em>
+      </div>
+    </el-upload>
   </div>
 </template>
 
@@ -9,13 +16,38 @@ import { mapGetters } from 'vuex'
 
 export default {
   name: 'Dashboard',
+  data() {
+    return {
+      uploadUrl: process.env.VUE_APP_BASE_API + '/depository/upload',
+      uploadHeader: {
+        Authorization: ''
+      },
+      uploadParam: {
+        path: ''
+      }
+    }
+  },
   computed: {
     ...mapGetters([
+      'token',
       'user'
     ])
   },
   mounted() {
-    console.log(this.user)
+    this.uploadHeader.Authorization = this.token
+  },
+  methods: {
+    onSuccess(response, file, fileList) {
+      if (response.code === 200) {
+        this.$message.success(response.message)
+      } else {
+        this.$refs['file-upload'].clearFiles()
+        this.$message.error(response.message)
+      }
+    },
+    onError(err, file, fileList) {
+      this.$message.error(err)
+    }
   }
 }
 </script>
