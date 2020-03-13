@@ -18,7 +18,7 @@ export default {
   name: 'Dashboard',
   data() {
     return {
-      uploadUrl: process.env.VUE_APP_BASE_API + '/depository/upload',
+      uploadUrl: process.env.VUE_APP_BASE_API + '/item/upload',
       uploadHeader: {
         Authorization: ''
       },
