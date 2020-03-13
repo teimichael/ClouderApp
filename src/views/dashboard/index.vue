@@ -1,8 +1,8 @@
 <template>
   <div class="dashboard-container">
     <div class="dashboard-text">name: {{ user.name }}</div>
-    <el-input v-model="uploadParam.path" placeholder="请输入路径" />
-    <el-upload ref="file-upload" :headers="uploadHeader" :data="uploadParam" :multiple="true" :on-success="onSuccess" :on-error="onError" :action="uploadUrl" drag>
+    <el-input v-model="uploadParam.path" placeholder="请输入路径，根目录为'/'" />
+    <el-upload ref="file-upload" :headers="uploadHeader" :data="uploadParam" :multiple="true" :before-upload="beforeUpload" :on-success="onSuccess" :on-error="onError" :action="uploadUrl" drag>
       <i class="el-icon-upload" />
       <div class="el-upload__text">
         将文件拖到此处，或<em>点击上传</em>
@@ -13,6 +13,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { uploadCheck } from '@/api/item'
 
 export default {
   name: 'Dashboard',
@@ -23,7 +24,9 @@ export default {
         Authorization: ''
       },
       uploadParam: {
-        path: ''
+        name: '',
+        path: '',
+        size: 0
       }
     }
   },
@@ -37,6 +40,11 @@ export default {
     this.uploadHeader.Authorization = this.token
   },
   methods: {
+    beforeUpload(file) {
+      this.uploadParam.name = file.name
+      this.uploadParam.size = file.size
+      return uploadCheck(this.uploadParam)
+    },
     onSuccess(response, file, fileList) {
       if (response.code === 200) {
         this.$message.success(response.message)
@@ -46,6 +54,7 @@ export default {
       }
     },
     onError(err, file, fileList) {
+      console.log(err)
       this.$message.error(err)
     }
   }
