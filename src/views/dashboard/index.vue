@@ -13,13 +13,13 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { uploadCheck } from '@/api/item'
+import { uploadCheck, upload } from '@/api/item'
 
 export default {
   name: 'Dashboard',
   data() {
     return {
-      uploadUrl: process.env.VUE_APP_BASE_API + '/item/upload',
+      uploadUrl: upload,
       uploadHeader: {
         Authorization: ''
       },

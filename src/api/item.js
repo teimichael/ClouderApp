@@ -12,3 +12,4 @@ export function uploadCheck(data) {
   })
 }
 
+export const upload = process.env.VUE_APP_BASE_API + '/item/upload'
