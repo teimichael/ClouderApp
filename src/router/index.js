@@ -56,6 +56,7 @@ export const constantRoutes = [
   },
 
   {
+<<<<<<< HEAD
     path: '/folder',
     component: Layout,
     redirect: '/folder/list',
@@ -65,6 +66,18 @@ export const constantRoutes = [
       component: () => import('@/views/folder/index'),
       meta: { title: 'Folder', icon: 'table' }
     }]
+=======
+    path: '/demo',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Demo',
+        component: () => import('@/views/demo/index'),
+        meta: { title: 'Demo', icon: 'demo' }
+      }
+    ]
+>>>>>>> fd779d9569af58e18f995ebbc3edb3c343e99e29
   },
 
   {
