@@ -59,13 +59,13 @@ export default {
   },
   data() {
     return {
-      list: null,
-      listLoading: true
+      list: null/* ,
+      listLoading: true*/
     }
   },
-  created() {
+  /* created() {
     this.fetchData()
-  },
+  },*/
   methods: {
     fetchData() {
       this.listLoading = true
