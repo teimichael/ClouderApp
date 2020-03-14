@@ -1,24 +1,24 @@
 import request from '@/utils/request'
 
-export function deleteItem(data) {
+export function deleteItem(itemId) {
   return request({
-    url: '/item/delete',
-    method: 'post',
+    url: '/item/delete/' + itemId,
+    method: 'post'/* ,
     params: {
       itemName: data.itemName,
       itemPath: data.itemPath
-    }
+    }*/
   })
 }
 
-export function downloadItem(data) {
+export function downloadItem(itemId) {
   return request({
-    url: '/item/download',
-    method: 'get',
+    url: '/item/download/' + itemId,
+    method: 'get'/* ,
     params: {
       itemName: data.itemName,
       itemPath: data.itemPath
-    }
+    }*/
   })
 }
 
@@ -34,15 +34,15 @@ export function getItemListByFolder(data) {
   })
 }
 
-export function getItemPreview(data) {
+export function getItemPreview(itemId) {
   return request({
-    url: '/item/preview',
-    method: 'get',
+    url: '/item/preview/' + itemId,
+    method: 'get'/* ,
     params: {
       itemName: data.itemName,
       itemPath: data.itemPath,
       token: data.token
-    }
+    }*/
   })
 }
 

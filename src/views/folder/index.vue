@@ -1,6 +1,7 @@
 <template>
   <!--folder list-->
   <div class="app-container">
+    <h3>文件夹列表</h3>
     <el-table
       v-loading="listLoading"
       :data="list.data"
@@ -62,6 +63,7 @@
       </el-table-column>-->
     </el-table>
     <!--item list-->
+    <h3>文件列表</h3>
     <el-table
       v-loading="listLoading"
       :data="itemList"
@@ -101,17 +103,23 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">
-        <template><!--slot-scope="scope"-->
+        <template slot-scope="scope">
           <el-button-group>
             <el-button type="info" icon="el-icon-message" />
             <el-button type="success" icon="el-icon-check" />
-            <el-button type="danger" icon="el-icon-delete" />
+            <el-button type="danger" icon="el-icon-delete" @click="deleteItem(scope.row)" />
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
     <el-button type="text" @click="createFolderDialogVisible = true">创建文件夹</el-button>
     <el-button type="text" @click="goParentDirectory()">返回上级目录</el-button>
+    <el-upload ref="file-upload" :headers="uploadHeader" :data="uploadParam" :multiple="true" :before-upload="beforeUpload" :on-success="uploadSuccess" :on-error="uploadError" :action="uploadUrl" drag>
+      <i class="el-icon-upload" />
+      <div class="el-upload__text">
+        将文件拖到此处，或<em>点击上传</em>
+      </div>
+    </el-upload>
     <el-dialog title="创建文件夹" :visible.sync="createFolderDialogVisible">
       <el-form :model="createFolderForm">
         <el-form-item label="名称" :label-width="formLabelWidth">
@@ -128,8 +136,9 @@
 
 <script>
 import { createFolder, getFolderList } from '@/api/folder'
-import { getItemListByFolder } from '@/api/item'
+import { uploadCheck, upload, getItemListByFolder, deleteItem } from '@/api/item'
 import { Message } from 'element-ui'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Folder',
@@ -147,15 +156,33 @@ export default {
         folderName: '',
         path: ''
       },
-      formLabelWidth: '120px'
+      formLabelWidth: '120px',
+      uploadUrl: upload,
+      uploadHeader: {
+        Authorization: ''
+      },
+      uploadParam: {
+        name: '',
+        path: '',
+        size: 0
+      }
     }
+  },
+  computed: {
+    ...mapGetters([
+      'token'
+    ])
   },
   created() {
     this.fetchData()
   },
+  mounted() {
+    this.uploadHeader.Authorization = this.token
+  },
   methods: {
     fetchData() {
       this.listLoading = true
+      this.itemList = null
       getFolderList(this.list.path).then(response => {
         console.log('Folder list')
         console.log(response)
@@ -190,6 +217,12 @@ export default {
           duration: 5 * 1000
         })
         this.fetchData()
+      }).catch(() => {
+        Message({
+          message: '创建失败',
+          type: 'error',
+          duration: 5 * 1000
+        })
       })
     },
     clickFolder(row, event, column) {
@@ -202,6 +235,45 @@ export default {
         this.list.path = this.list.oldPath
         this.fetchData()
       }
+    },
+    beforeUpload(file) {
+      this.uploadParam.name = file.name
+      this.uploadParam.size = file.size
+      this.uploadParam.path = this.list.path
+      return uploadCheck(this.uploadParam)
+    },
+    uploadSuccess(response, file, fileList) {
+      if (response.code === 200) {
+        this.$message.success(response.message)
+        this.fetchData()
+      } else {
+        this.$refs['file-upload'].clearFiles()
+        this.$message.error(response.message)
+      }
+    },
+    uploadError(err, file, fileList) {
+      console.log(err)
+      this.$message.error(err)
+    },
+    deleteItem(row) {
+      /* const deleteItemInfo = {
+        itemName: row.name,
+        itemPath: row.path
+      }*/
+      deleteItem(row.id).then(() => {
+        Message({
+          message: '删除成功',
+          type: 'success',
+          duration: 5 * 1000
+        })
+        this.fetchData()
+      }).catch(() => {
+        Message({
+          message: '删除失败',
+          type: 'error',
+          duration: 5 * 1000
+        })
+      })
     }
   }
 }
