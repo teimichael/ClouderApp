@@ -14,11 +14,7 @@ export function deleteItem(itemId) {
 export function downloadItem(itemId) {
   return request({
     url: '/item/download/' + itemId,
-    method: 'get'/* ,
-    params: {
-      itemName: data.itemName,
-      itemPath: data.itemPath
-    }*/
+    method: 'get'
   })
 }
 
@@ -62,11 +58,13 @@ export function uploadCheck(data) {
     url: '/item/upload/check',
     method: 'post',
     params: {
-      path: data.path,
+      folderId: data.folderId,
       name: data.name,
       size: data.size
     }
   })
 }
 
-export const upload = process.env.VUE_APP_BASE_API + '/item/upload'
+export function uploadURL(folderId) {
+  return process.env.VUE_APP_BASE_API + '/item/upload/to/' + folderId
+}
