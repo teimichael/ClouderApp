@@ -18,12 +18,12 @@ export function downloadItem(itemId) {
   })
 }
 
-export function getItemListByFolder(data) {
+export function getItemListByFolderId(data) {
   return request({
-    url: '/item/list',
+    url: '/item/list/' + data.folderId,
     method: 'get',
     params: {
-      folderPath: data.folderPath,
+      folderId: data.folderId,
       page: data.page,
       size: data.size
     }

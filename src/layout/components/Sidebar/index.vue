@@ -15,6 +15,7 @@
         <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path" />
       </el-menu>
     </el-scrollbar>
+    <el-progress class="store-capacity" :text-inside="true" :stroke-width="26" :percentage="70" :format="format" />
   </div>
 </template>
 
@@ -51,6 +52,17 @@ export default {
     isCollapse() {
       return !this.sidebar.opened
     }
+  },
+  methods: {
+    format(percentage) {
+      return `${percentage}% / 总容量`
+    }
   }
 }
 </script>
+
+<style>
+  .store-capacity {
+    margin: .7rem;
+  }
+</style>

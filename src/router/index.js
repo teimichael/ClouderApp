@@ -69,18 +69,135 @@ export const constantRoutes = [
   },
 
   {
-    path: '/folder',
+    path: '/file',
     component: Layout,
-    redirect: '/folder/list',
-    children: [{
-      path: 'list',
-      name: 'Folder',
-      component: () => import('@/views/folder/index'),
-      meta: { title: 'Folder', icon: 'table' }
-    }]
+    children: [
+      {
+        path: 'index',
+        name: 'File',
+        component: () => import('@/views/file/index'),
+        meta: { title: '全部文件', icon: 'table' }
+      }
+    ]
   },
 
   {
+    path: '/file/list',
+    component: Layout,
+    children: [
+      {
+        path: ':id',
+        name: 'ChildrenFolder',
+        component: () => import('@/views/file/index')
+      }
+    ]
+  },
+
+  {
+    path: '/file/image',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Image',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '图片', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/file/document',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Document',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '文档', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/file/bt',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Bt',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '种子', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/file/music',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Music',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '音乐', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/file/video',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Video',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '视频', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/file/others',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Others',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '其他', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/mine/share',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'MyShare',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '我的分享', icon: 'example' }
+      }
+    ]
+  },
+
+  {
+    path: '/recycle',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'RecycleBin',
+        /* component: () => import('@/views/file/index'),*/
+        meta: { title: '回收站', icon: 'example' }
+      }
+    ]
+  },
+
+  /* {
     path: '/example',
     component: Layout,
     redirect: '/example/table',
@@ -182,7 +299,7 @@ export const constantRoutes = [
         meta: { title: 'External Link', icon: 'link' }
       }
     ]
-  },
+  },*/
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
