@@ -15,10 +15,6 @@
           :show-file-list="false"
           style="display:inline"
         >
-          <!--<i class="el-icon-upload" />
-          <div class="el-upload__text">
-            将文件拖到此处，或<em>点击上传</em>
-          </div>-->
           <el-button type="primary" icon="el-icon-upload">上传</el-button>
         </el-upload>
         <el-button icon="el-icon-folder-add" plain @click="createFolderDialogVisible = true">新建文件夹</el-button>
@@ -35,7 +31,7 @@
         <el-dropdown>
           <el-button icon="el-icon-sort" />
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>名称</el-dropdown-item>
+            <el-dropdown-item @click.native="sortByName()">名称</el-dropdown-item>
             <el-dropdown-item>大小</el-dropdown-item>
             <el-dropdown-item>更新日期</el-dropdown-item>
           </el-dropdown-menu>
@@ -54,6 +50,7 @@
     <el-table
       v-loading="listLoading"
       :data="list.data"
+      :default-sort="ListSort"
       element-loading-text="Loading"
       size="small"
       fit
@@ -67,37 +64,45 @@
         type="selection"
         width="55"
       />
-      <el-table-column label="文件名">
+      <el-table-column prop="name" label="文件名" sortable>
         <template slot-scope="scope">
           {{ scope.row.name }}
           <el-container v-if="scope.row.showFunctionBtn" style="float: right">
-            <el-button type="text" icon="el-icon-edit" style="padding: 0" />
-            <el-button type="text" icon="el-icon-share" style="padding: 0" />
-            <el-button type="text" icon="el-icon-delete" style="padding: 0" />
+            <el-tooltip content="分享" placement="bottom" effect="light">
+              <el-button type="text" icon="el-icon-share" style="padding: 0" />
+            </el-tooltip>
+            <el-tooltip content="下载" placement="bottom" effect="light">
+              <el-button type="text" icon="el-icon-download" style="padding: 0" @click.prevent="downloadItem(scope.row)" />
+            </el-tooltip>
+            <el-dropdown trigger="click" @visible-change="moreBtnVisible">
+              <span class="el-dropdown-link">
+                <el-tooltip content="更多" placement="bottom" effect="light">
+                  <el-button type="text" icon="el-icon-more" style="padding: 0; margin-left: 10px" />
+                </el-tooltip>
+              </span>
+              <el-dropdown-menu slot="dropdown" style="margin-top: 0">
+                <el-dropdown-item @click.native="moveItemTo(scope.row)">移动到</el-dropdown-item>
+                <el-dropdown-item @click.native="copyItemTo(scope.row)">复制到</el-dropdown-item>
+                <el-dropdown-item @click.native="openRenameForm(scope.row)">重命名</el-dropdown-item>
+                <el-dropdown-item @click.native="deleteItem(scope.row)">删除</el-dropdown-item>
+                <el-dropdown-item>设置共享</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </el-container>
         </template>
       </el-table-column>
-      <el-table-column label="大小" width="160">
+      <el-table-column prop="size" label="大小" width="160" sortable>
         <template slot-scope="scope">
           {{ scope.row.size }}
         </template>
       </el-table-column>
-      <el-table-column label="修改日期" width="220">
+      <el-table-column prop="date" label="修改日期" width="220" sortable>
         <template slot-scope="scope">
           {{ scope.row.updateDate }}
         </template>
       </el-table-column>
-      <!--<el-table-column label="操作" align="center">
-        <template>&lt;!&ndash;slot-scope="scope"&ndash;&gt;
-          <el-button-group>
-            <el-button type="info" icon="el-icon-message" />
-            <el-button type="success" icon="el-icon-check" />
-            <el-button type="danger" icon="el-icon-delete" />
-          </el-button-group>
-        </template>
-      </el-table-column>-->
     </el-table>
-
+    <!--new folder dialog-->
     <el-dialog title="新建文件夹" :visible.sync="createFolderDialogVisible">
       <el-form :model="createFolderForm">
         <el-form-item label="名称" :label-width="formLabelWidth">
@@ -109,12 +114,46 @@
         <el-button type="primary" @click="createFolder()">确 定</el-button>
       </div>
     </el-dialog>
+    <!--rename-->
+    <el-dialog title="重命名" :visible.sync="renameDialogVisible">
+      <el-form :model="renameForm">
+        <el-form-item label="原名称" :label-width="formLabelWidth">
+          <el-input v-model="renameForm.oldName" autocomplete="off" disabled />
+        </el-form-item>
+        <el-form-item label="新名称" :label-width="formLabelWidth">
+          <el-input v-model="renameForm.newName" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="renameDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="renameItem()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!--folder tree-->
+    <el-dialog :title="tree.title" :visible.sync="folderTreeDialogVisible">
+      <div style="height: 200px; overflow: auto; border-style:solid; border-width: 1px; border-color: #EBEEF5">
+        <el-tree
+          ref="folderTree"
+          :props="treeProps"
+          :load="treeLoadNode"
+          :check-strictly="true"
+          node-key="id"
+          lazy
+          show-checkbox
+          @check-change="orgCheckChange"
+        />
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="folderTreeDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitDestFolderId">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { createFolder, getFolderList } from '@/api/folder'
-import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem } from '@/api/item'
+import { getFolderContent, createFolder, deleteFolder, renameFolder, getFolderList, moveFolder, copyFolder } from '@/api/folder'
+import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem, renameItem, moveItem, copyItem } from '@/api/item'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 
@@ -128,12 +167,18 @@ export default {
         id: 0,
         data: []
       },
+      ListSort: { prop: 'date', order: 'ascending' },
       showFunctionBtn: false,
       listLoading: true,
       createFolderDialogVisible: false,
       createFolderForm: {
         folderName: '',
         path: ''
+      },
+      renameDialogVisible: false,
+      renameForm: {
+        oldName: '',
+        newName: ''
       },
       formLabelWidth: '120px',
       uploadHeader: {
@@ -143,6 +188,18 @@ export default {
         name: '',
         folderId: 0,
         size: 0
+      },
+      moreBtnDropActive: false,
+      tree: {
+        title: ''
+      },
+      folderTreeDialogVisible: false,
+      treeProps: {
+        label: 'name',
+        children: 'zone'
+      },
+      selectOrg: {
+        orgId: []
       }
     }
   },
@@ -188,27 +245,6 @@ export default {
 
     this.filePath = this.filePathInfo
 
-    /* if (this.filePathInfo.length === 0) {
-      const fileInfoInit = {
-        name: '全部文件',
-        id: this.user.depository.rootFolder.id
-      }
-      console.log('fileInfoInit')
-      console.log(fileInfoInit)
-      this.$store.dispatch('file/pushFileInfo', fileInfoInit)
-      if (this.$router.currentRoute.params.id) {
-        this.$router.push('/file/index')
-      }
-      console.log(this.filePathInfo)
-      this.filePath = this.filePathInfo
-    } else {
-      if (this.filePathInfo[this.filePathInfo.length - 1].id !== Number(this.$router.currentRoute.params.id)) {
-        this.$store.dispatch('file/setFilePathLength', 0)
-        this.$router.push('/file/index')
-      }
-      this.filePath = this.filePathInfo
-    }*/
-
     if (this.$router.currentRoute.params.id) {
       this.list.id = this.$router.currentRoute.params.id
     } else {
@@ -220,7 +256,38 @@ export default {
     fetchData() {
       this.listLoading = true
       this.list.data = []
-      getFolderList(this.list.id).then(response => {
+      const currentFolderInfo = {
+        folderId: this.list.id,
+        page: 0,
+        size: 20
+      }
+      getFolderContent(currentFolderInfo).then(response => {
+        console.log('Folder content')
+        console.log(response)
+        this.list.data = response.data.folders
+        this.list.data.push(...response.data.items.content)
+        if (response.data.items.totalPages !== 1) {
+          for (let i = 1; i < response.data.items.totalPages; i++) {
+            const folderInfo = {
+              folderId: this.list.id,
+              page: i,
+              size: 20
+            }
+            getItemListByFolderId(folderInfo).then(response => {
+              console.log('Item list')
+              console.log(response)
+              this.list.data.push(...response.data.content)
+            }).catch(error => {
+              console.log(error)
+            })
+          }
+        }
+        this.listLoading = false
+      }).catch(error => {
+        console.log(error)
+        this.listLoading = false
+      })
+      /* getFolderList(this.list.id).then(response => {
         console.log('Folder list')
         console.log(response)
         this.list.data = response.data
@@ -233,7 +300,7 @@ export default {
         getItemListByFolderId(folderInfo).then(response => {
           console.log('Item list')
           console.log(response)
-          /* this.itemList = response.data.content*/
+          /!* this.itemList = response.data.content*!/
           this.list.data.push(...response.data.content)
           this.listLoading = false
         }).catch(error => {
@@ -243,7 +310,7 @@ export default {
       }).catch(error => {
         console.log(error)
         this.listLoading = false
-      })
+      })*/
     },
     createFolder() {
       this.createFolderDialogVisible = false
@@ -263,8 +330,19 @@ export default {
         })
       })
     },
+    openRenameForm(row) {
+      if (row.suffix) {
+        this.renameForm.type = 'd'
+        this.renameForm.itemId = row.id
+      } else {
+        this.renameForm.type = 'f'
+        this.renameForm.folderId = row.id
+      }
+      this.renameForm.oldName = row.name
+      this.renameDialogVisible = true
+    },
     clickFolder(row, event, column) {
-      if (!row.size) {
+      if (!row.suffix) {
         const fileInfo = {
           name: row.name,
           id: row.id
@@ -287,10 +365,14 @@ export default {
       }
     },
     enterFile(row) {
-      this.$set(row, 'showFunctionBtn', true)
+      if (this.moreBtnDropActive === false) {
+        this.$set(row, 'showFunctionBtn', true)
+      }
     },
     leaveFile(row) {
-      this.$set(row, 'showFunctionBtn', false)
+      if (this.moreBtnDropActive === false) {
+        this.$set(row, 'showFunctionBtn', false)
+      }
     },
     goPathPage(foldId, length) {
       this.$store.dispatch('file/setFilePathLength', length + 1)
@@ -322,24 +404,277 @@ export default {
       this.$message.error(err)
     },
     deleteItem(row) {
-      /* const deleteItemInfo = {
-        itemName: row.name,
-        itemPath: row.path
-      }*/
-      deleteItem(row.id).then(() => {
-        Message({
-          message: '删除成功',
-          type: 'success',
-          duration: 5 * 1000
+      console.log('delete')
+      if (row.suffix) {
+        console.log('delete1')
+        deleteItem(row.id).then(() => {
+          Message({
+            message: '删除成功',
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.fetchData()
+        }).catch(() => {
+          Message({
+            message: '删除失败',
+            type: 'error',
+            duration: 5 * 1000
+          })
         })
-        this.fetchData()
-      }).catch(() => {
+      } else {
+        console.log('delete2')
+        deleteFolder(row.id).then(() => {
+          Message({
+            message: '删除成功',
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.fetchData()
+        }).catch(() => {
+          Message({
+            message: '删除失败',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        })
+      }
+      console.log('delete3')
+    },
+    renameItem() {
+      const itemInfo = {
+        name: this.renameForm.newName
+      }
+      if (this.renameForm.type === 'd') {
+        itemInfo.itemId = this.renameForm.itemId
+        renameItem(itemInfo).then(() => {
+          Message({
+            message: '重命名成功',
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.fetchData()
+          this.renameDialogVisible = false
+        }).catch(() => {
+          Message({
+            message: '重命名失败',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        })
+      } else {
+        itemInfo.folderId = this.renameForm.folderId
+        renameFolder(itemInfo).then(() => {
+          Message({
+            message: '重命名成功',
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.fetchData()
+          this.renameDialogVisible = false
+        }).catch(() => {
+          Message({
+            message: '重命名失败',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        })
+      }
+    },
+    downloadItem(row) {
+      if (row.suffix) { //  判断是否为文件
+        console.log('download')
+        const itemId = row.id
+        downloadItem(itemId).then(response => {
+          const link = document.createElement('a')
+          link.setAttribute('href', response.data)
+          link.click()
+          this.$message({
+            showClose: true,
+            message: '开始下载',
+            type: 'info',
+            duration: 3 * 1000
+          })
+        })
+      } else {
+        this.$message({
+          showClose: true,
+          message: '文件夹暂不支持下载',
+          type: 'error',
+          duration: 3 * 1000
+        })
+      }
+    },
+    moreBtnVisible(v) {
+      this.moreBtnDropActive = v
+    },
+    sortByName() {
+      console.log('sortByName')
+    },
+    copyItemTo(row) {
+      this.tree.title = '复制到'
+      this.tree.handle = 'copy'
+      if (row.suffix) {
+        this.tree.itemType = 'd'
+        this.tree.itemId = row.id
+        this.tree.folderId = row.folderId
+      } else {
+        this.tree.itemType = 'f'
+        this.tree.folderId = row.id
+      }
+      this.folderTreeDialogVisible = true
+    },
+    moveItemTo(row) {
+      this.tree.title = '移动到'
+      this.tree.handle = 'move'
+      if (row.suffix) {
+        this.tree.typeType = 'd'
+        this.tree.itemId = row.id
+        this.tree.folderId = row.folderId
+      } else {
+        this.tree.typeType = 'f'
+        this.tree.folderId = row.id
+      }
+      this.folderTreeDialogVisible = true
+    },
+    treeLoadNode(node, resolve) {
+      if (node.level === 0) {
+        return resolve([{ name: '全部文件', id: this.user.depository.rootFolder.id }])
+      }
+      if (node.level > 5) {
+        return resolve([])
+      }
+      console.log(node)
+      getFolderList(node.data.id).then(response => {
+        console.log(response.data)
+        const res = []
+        for (const value of response.data) {
+          res.push({
+            name: value.name,
+            id: value.id
+          })
+        }
+        return resolve(res)
+      })
+      return resolve([])
+    },
+    orgCheckChange(data, checked, indeterminate) {
+      /* console.log(data, '数据')
+      console.log(checked, '选中状态')
+      console.log(indeterminate, '子树中选中状态')*/
+      // 获取当前选择的id在数组中的索引
+      const index = this.selectOrg.orgId.indexOf(data.id)
+      // 如果不存在数组中，并且数组中已经有一个id并且checked为true的时候，代表不能再次选择。
+      if (index < 0 && this.selectOrg.orgId.length === 1 && checked) {
+        console.log('only one')
+        this.$message({
+          message: '只能选择一个区域！',
+          type: 'error',
+          showClose: true
+        })
+        // 设置已选择的节点为false 很重要
+        this.$refs.folderTree.setChecked(data, false)
+      } else if (this.selectOrg.orgId.length === 0 && checked) {
+        // 发现数组为空 并且是已选择
+        // 防止数组有值，首先清空，再push
+        this.selectOrg.orgId = []
+        this.selectOrg.orgId.push(data.id)
+      } else if (
+        index >= 0 &&
+        this.selectOrg.orgId.length === 1 &&
+        !checked
+      ) {
+        // 再次直接进行赋值为空操作
+        this.selectOrg.orgId = []
+      }
+    },
+    submitDestFolderId() {
+      this.tree.destFolderId = this.$refs.folderTree.getCheckedNodes()[0].id
+      console.log(this.tree)
+      if (this.tree.destFolderId === this.tree.folderId) {
         Message({
-          message: '删除失败',
+          message: '目标文件夹为当前文件夹',
           type: 'error',
           duration: 5 * 1000
         })
-      })
+      } else {
+        if (this.tree.itemType === 'd') {
+          const handledData = {
+            destFolderId: this.tree.destFolderId,
+            itemId: this.tree.itemId
+          }
+          if (this.tree.handle === 'move') {
+            moveItem(handledData).then(() => {
+              Message({
+                message: '移动成功',
+                type: 'success',
+                duration: 5 * 1000
+              })
+              this.fetchData()
+              this.folderTreeDialogVisible = false
+            }).catch(() => {
+              Message({
+                message: '移动失败',
+                type: 'error',
+                duration: 5 * 1000
+              })
+            })
+          } else {
+            copyItem(handledData).then(() => {
+              Message({
+                message: '复制成功',
+                type: 'success',
+                duration: 5 * 1000
+              })
+              this.fetchData()
+              this.folderTreeDialogVisible = false
+            }).catch(() => {
+              Message({
+                message: '复制失败',
+                type: 'error',
+                duration: 5 * 1000
+              })
+            })
+          }
+        } else {
+          const handledData = {
+            destFolderId: this.tree.destFolderId,
+            folderId: this.tree.folderId
+          }
+          if (this.tree.handle === 'move') {
+            moveFolder(handledData).then(() => {
+              Message({
+                message: '移动成功',
+                type: 'success',
+                duration: 5 * 1000
+              })
+              this.fetchData()
+              this.folderTreeDialogVisible = false
+            }).catch(() => {
+              Message({
+                message: '移动失败',
+                type: 'error',
+                duration: 5 * 1000
+              })
+            })
+          } else {
+            copyFolder(handledData).then(() => {
+              Message({
+                message: '复制成功',
+                type: 'success',
+                duration: 5 * 1000
+              })
+              this.fetchData()
+              this.folderTreeDialogVisible = false
+            }).catch(() => {
+              Message({
+                message: '复制失败',
+                type: 'error',
+                duration: 5 * 1000
+              })
+            })
+          }
+        }
+      }
     }
   }
 }

@@ -1,20 +1,33 @@
 import request from '@/utils/request'
 
+export function copyItem(data) {
+  return request({
+    url: '/item/copy/' + data.itemId + '/to/' + data.destFolderId,
+    method: 'post',
+    params: {
+      destFolderId: data.destFolderId,
+      itemId: data.itemId
+    }
+  })
+}
+
 export function deleteItem(itemId) {
   return request({
     url: '/item/delete/' + itemId,
-    method: 'post'/* ,
+    method: 'post',
     params: {
-      itemName: data.itemName,
-      itemPath: data.itemPath
-    }*/
+      itemId: itemId
+    }
   })
 }
 
 export function downloadItem(itemId) {
   return request({
     url: '/item/download/' + itemId,
-    method: 'get'
+    method: 'get',
+    params: {
+      itemId: itemId
+    }
   })
 }
 
@@ -30,15 +43,25 @@ export function getItemListByFolderId(data) {
   })
 }
 
-export function getItemPreview(itemId) {
+export function moveItem(data) {
   return request({
-    url: '/item/preview/' + itemId,
-    method: 'get'/* ,
+    url: '/item/move/' + data.itemId + '/to/' + data.destFolderId,
+    method: 'post',
     params: {
-      itemName: data.itemName,
-      itemPath: data.itemPath,
-      token: data.token
-    }*/
+      destFolderId: data.destFolderId,
+      itemId: data.itemId
+    }
+  })
+}
+
+export function renameItem(data) {
+  return request({
+    url: '/item/rename/' + data.itemId,
+    method: 'post',
+    params: {
+      itemId: data.itemId,
+      name: data.name
+    }
   })
 }
 
