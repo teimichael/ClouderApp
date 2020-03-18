@@ -3,20 +3,26 @@
     <!--top function button-->
     <el-row style="margin: 1rem">
       <el-col :span="12">
-        <el-upload
-          ref="file-upload"
-          :headers="uploadHeader"
-          :data="uploadParam"
-          :multiple="true"
-          :before-upload="beforeUpload"
-          :on-success="uploadSuccess"
-          :on-error="uploadError"
-          :action="uploadUrl"
-          :show-file-list="false"
-          style="display:inline"
-        >
-          <el-button type="primary" icon="el-icon-upload">上传</el-button>
-        </el-upload>
+        <el-dropdown>
+          <el-upload
+            ref="file-upload"
+            :headers="uploadHeader"
+            :data="uploadParam"
+            :multiple="true"
+            :before-upload="beforeUpload"
+            :on-progress="uploadProgress"
+            :on-success="uploadSuccess"
+            :on-error="uploadError"
+            :action="uploadUrl"
+            :show-file-list="false"
+            style="display:inline"
+          >
+            <el-button type="primary" icon="el-icon-upload">上传</el-button>
+          </el-upload>
+          <el-dropdown-menu slot="dropdown" style="margin-top: .5rem">
+            <el-dropdown-item @click.native="uploadDialogVisible = true">查看上传状态</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <el-button icon="el-icon-folder-add" plain @click="createFolderDialogVisible = true">新建文件夹</el-button>
         <el-button type="text" @click="goParentDirectory()">返回上级目录</el-button>
       </el-col>
@@ -66,7 +72,7 @@
       />
       <el-table-column prop="name" label="文件名" sortable>
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          <el-button type="text" size="mini" @click="clickFolder(scope.row)">{{ scope.row.name }}</el-button>
           <el-container v-if="scope.row.showFunctionBtn" style="float: right">
             <el-tooltip content="分享" placement="bottom" effect="light">
               <el-button type="text" icon="el-icon-share" style="padding: 0" />
@@ -114,7 +120,7 @@
         <el-button type="primary" @click="createFolder()">确 定</el-button>
       </div>
     </el-dialog>
-    <!--rename-->
+    <!--rename dialog-->
     <el-dialog title="重命名" :visible.sync="renameDialogVisible">
       <el-form :model="renameForm">
         <el-form-item label="原名称" :label-width="formLabelWidth">
@@ -147,6 +153,45 @@
         <el-button @click="folderTreeDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitDestFolderId">确 定</el-button>
       </div>
+    </el-dialog>
+    <!--upload dialog-->
+    <el-dialog
+      title="上传列表"
+      :visible.sync="uploadDialogVisible"
+      :modal="false"
+      top="50vh"
+    >
+      <el-table
+        :data="uploadList"
+        size="small"
+        height="30vh"
+        fit
+        highlight-current-row
+      >
+        <el-table-column property="name" label="文件名">
+          <template slot-scope="scope">
+            {{ scope.row.name }}
+          </template>
+        </el-table-column>
+        <el-table-column property="size" label="文件大小" width="100">
+          <template slot-scope="scope">
+            {{ scope.row.size }}
+          </template>
+        </el-table-column>
+        <el-table-column property="progress" label="下载进度" width="200">
+          <template slot-scope="scope">
+            {{ scope.row.percentage }}%
+            <el-container style="float: right">
+              <el-tooltip content="暂停" placement="bottom" effect="light">
+                <el-button type="text" icon="el-icon-more" style="padding: 0" />
+              </el-tooltip>
+              <el-tooltip content="删除" placement="bottom" effect="light">
+                <el-button type="text" icon="el-icon-more" style="padding: 0" />
+              </el-tooltip>
+            </el-container>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-dialog>
   </div>
 </template>
@@ -189,6 +234,8 @@ export default {
         folderId: 0,
         size: 0
       },
+      uploadList: [],
+      uploadDialogVisible: false,
       moreBtnDropActive: false,
       tree: {
         title: ''
@@ -389,6 +436,16 @@ export default {
       this.uploadParam.size = file.size
       this.uploadParam.folderId = this.list.id
       return uploadCheck(this.uploadParam)
+    },
+    uploadProgress(event, file, fileList) {
+      console.log('event')
+      console.log(event)
+      console.log('file')
+      console.log(file)
+      console.log('fileList')
+      console.log(fileList)
+      this.uploadList = fileList
+      this.uploadDialogVisible = true
     },
     uploadSuccess(response, file, fileList) {
       if (response.code === 200) {
