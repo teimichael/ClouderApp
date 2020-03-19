@@ -31,6 +31,13 @@ export function downloadItem(itemId) {
   })
 }
 
+export function previewItem(itemId) {
+  return request({
+    url: '/item/preview/' + itemId,
+    method: 'get'
+  })
+}
+
 export function getItemListByFolderId(data) {
   return request({
     url: '/item/list/' + data.folderId,

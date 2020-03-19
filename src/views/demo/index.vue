@@ -8,14 +8,30 @@
         将文件拖到此处，或<em>点击上传</em>
       </div>
     </el-upload>
-
+    <br>
+    <el-input v-model="downloadParam.itemId" placeholder="itemId" />
     <el-button type="primary" @click="downloadItem">下载</el-button>
+    <br>
+    <el-input v-model="previewParam.itemId" placeholder="itemId" />
+    <el-button type="primary" @click="previewItem">预览</el-button>
+    <div v-if="previewWindow.type===1">
+      <el-image :src="previewWindow.obj">
+        <div slot="error" class="image-slot">
+          <i class="el-icon-picture-outline" />
+        </div>
+      </el-image>
+    </div>
+    <div v-else-if="previewWindow.type===2">
+      <canvas ref="myCanvas" class="pdf-container" />
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { uploadCheck, uploadURL, downloadItem } from '@/api/item'
+import { uploadCheck, uploadURL, downloadItem, previewItem } from '@/api/item'
+import pdfjsLib from 'pdfjs-dist'
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.js'
 
 export default {
   name: 'Demo',
@@ -28,6 +44,16 @@ export default {
         name: '',
         folderId: 0,
         size: 0
+      },
+      downloadParam: {
+        itemId: 0
+      },
+      previewParam: {
+        itemId: 0
+      },
+      previewWindow: {
+        type: 0,
+        obj: ''
       }
     }
   },
@@ -62,12 +88,68 @@ export default {
       this.$message.error(err)
     },
     downloadItem() {
-      const itemId = 1
-      downloadItem(itemId).then(response => {
-        const link = document.createElement('a')
-        link.setAttribute('href', response.data)
-        link.click()
+      downloadItem(this.downloadParam.itemId).then(response => {
+        if (response.code === 200) {
+          const link = document.createElement('a')
+          link.setAttribute('href', response.data)
+          link.click()
+        } else {
+          this.$message.error(response.message)
+        }
       })
+    },
+    previewItem() {
+      previewItem(this.previewParam.itemId).then(response => {
+        if (response.code === 200) {
+          const data = response.data
+          this.previewWindow.type = data.type
+          switch (data.type) {
+            // Load image
+            case 1:
+              this.previewWindow.obj = 'data:image/png;base64,' + data.content
+              break
+            // Load PDF
+            case 2:
+              this.previewWindow.obj = atob(data.content)
+              this.previewPDF()
+          }
+        } else {
+          this.$message.error(response.message)
+        }
+      })
+    },
+    previewPDF() {
+      const loadingTask = pdfjsLib.getDocument({
+        data: this.previewWindow.obj
+      })
+      loadingTask.promise.then((pdf) => {
+        const numPages = pdf.numPages
+        const pageNumber = 1
+        this.getPage(pdf, pageNumber, numPages)
+      })
+    },
+    getPage(pdf, pageNumber, numPages) {
+      pdf.getPage(pageNumber)
+        .then((page) => {
+          const scale = 1.5
+          const viewport = page.getViewport({ scale: scale })
+          const canvas = this.$refs.myCanvas
+
+          const context = canvas.getContext('2d')
+          canvas.height = viewport.height
+          canvas.width = viewport.width
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          }
+          const renderTask = page.render(renderContext)
+          renderTask.promise.then(() => {
+            // pageNumber += 1
+            // if (pageNumber <= numPages) {
+            //   _this.getPage(pdf, pageNumber, numPages)
+            // }
+          })
+        })
     }
   }
 }
