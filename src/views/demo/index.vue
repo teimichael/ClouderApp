@@ -101,6 +101,7 @@ export default {
     previewItem() {
       previewItem(this.previewParam.itemId).then(response => {
         if (response.code === 200) {
+          console.log(response)
           const data = response.data
           this.previewWindow.type = data.type
           switch (data.type) {

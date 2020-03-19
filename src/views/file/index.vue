@@ -38,8 +38,8 @@
           <el-button icon="el-icon-sort" />
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item @click.native="sortByName()">名称</el-dropdown-item>
-            <el-dropdown-item>大小</el-dropdown-item>
-            <el-dropdown-item>更新日期</el-dropdown-item>
+            <el-dropdown-item @click.native="sortBySize()">大小</el-dropdown-item>
+            <el-dropdown-item @click.native="sortByDate()">更新日期</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </el-col>
@@ -54,6 +54,7 @@
     </el-row>
     <!--item list-->
     <el-table
+      ref="fileList"
       v-loading="listLoading"
       :data="list.data"
       :default-sort="ListSort"
@@ -610,7 +611,13 @@ export default {
       this.moreBtnDropActive = v
     },
     sortByName() {
-      console.log('sortByName')
+      this.$refs.fileList.sort('name')
+    },
+    sortBySize() {
+      this.$refs.fileList.sort('size')
+    },
+    sortByDate() {
+      this.$refs.fileList.sort('date')
     },
     copyItemTo(row) {
       this.tree.title = '复制到'
