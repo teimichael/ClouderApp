@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" style="height: 100vh" @click="closeContextmenuFolder">
     <!--top function button-->
     <el-row style="margin: 1rem">
       <el-col :span="12">
@@ -63,6 +63,7 @@
       highlight-current-row
       @row-dblclick="dblClickFolder"
       @row-click="singleClickFolder"
+      @row-contextmenu="contextmenuFolder"
       @cell-mouse-enter="enterFile"
       @cell-mouse-leave="leaveFile"
     >
@@ -171,6 +172,7 @@
         <el-table-column property="name" label="文件名">
           <template slot-scope="scope">
             {{ scope.row.name }}
+            <span v-if="scope.row.isabort" style="color: #909399">&nbsp;&nbsp;上传已取消</span>
           </template>
         </el-table-column>
         <el-table-column property="size" label="文件大小" width="100">
@@ -178,21 +180,33 @@
             {{ scope.row.size }}
           </template>
         </el-table-column>
-        <el-table-column property="progress" label="下载进度" width="200">
+        <el-table-column property="progress" label="下载进度" width="150">
           <template slot-scope="scope">
-            {{ scope.row.percentage }}%
+            {{ scope.row.percentage | uploadProgressEllipsis }}%
             <el-container style="float: right">
               <el-tooltip content="暂停" placement="bottom" effect="light">
                 <el-button type="text" icon="el-icon-more" style="padding: 0" />
               </el-tooltip>
-              <el-tooltip content="删除" placement="bottom" effect="light">
-                <el-button type="text" icon="el-icon-more" style="padding: 0" />
+              <el-tooltip content="取消上传" placement="bottom" effect="light">
+                <el-button type="text" icon="el-icon-delete" style="padding: 0" @click="abortUpload(scope.row)" />
               </el-tooltip>
             </el-container>
           </template>
         </el-table-column>
       </el-table>
     </el-dialog>
+    <!--oncontextmenu-->
+    <div ref="oncontextmenuInFileList" style="display: none; width:120px; background:#ffffff; position:fixed; left: 500px; top: 500px; box-shadow:1px 1px 1px 1px #807878; z-index: 900">
+      <ul style="list-style: none; margin: 0; padding: 0; text-align: center">
+        <li @click="clickFolder(currentRow)"><el-button type="text" size="medium">打开</el-button></li>
+        <li style="border-bottom: solid 1px darkgrey" @click="downloadItem(currentRow)"><el-button type="text" size="medium">下载</el-button></li>
+        <li style="border-bottom: solid 1px darkgrey"><el-button type="text" size="medium">分享</el-button></li>
+        <li @click="copyItemTo(currentRow)"><el-button type="text" size="medium">复制到</el-button></li>
+        <li style="border-bottom: solid 1px darkgrey" @click="moveItemTo(currentRow)"><el-button type="text" size="medium">移动到</el-button></li>
+        <li @click="openRenameForm(currentRow)"><el-button type="text" size="medium">重命名</el-button></li>
+        <li style="border-bottom: solid 1px darkgrey" @click="deleteItem(currentRow)"><el-button type="text" size="medium">删除</el-button></li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -204,6 +218,15 @@ import { mapGetters } from 'vuex'
 
 export default {
   name: 'Folder',
+  filters: {
+    uploadProgressEllipsis(value) {
+      if (!value) return 0
+      if (String(value).length > 5) {
+        return String(value).slice(0, 5)
+      }
+      return value
+    }
+  },
   data() {
     return {
       searchContent: '',
@@ -247,7 +270,8 @@ export default {
       },
       selectOrg: {
         orgId: []
-      }
+      },
+      currentRow: {}
     }
   },
   computed: {
@@ -400,10 +424,26 @@ export default {
       this.listLoading = false
     },
     singleClickFolder(row) {
+      this.closeContextmenuFolder()
       if (this.device === 'mobile') {
         this.listLoading = true
         this.clickFolder(row)
       }
+    },
+    contextmenuFolder(row, column, event) {
+      console.log(row)
+      if (event.button === 2) {
+        /* 屏蔽鼠标右键*/
+        document.oncontextmenu = () => { return false }
+        this.currentRow = row
+        this.$refs.oncontextmenuInFileList.style.left = event.clientX + 'px'
+        this.$refs.oncontextmenuInFileList.style.top = event.clientY + 'px'
+        this.$refs.oncontextmenuInFileList.style.display = 'block'
+      }
+    },
+    closeContextmenuFolder() {
+      this.$refs.oncontextmenuInFileList.style.display = 'none'
+      document.oncontextmenu = () => { return true }
     },
     dblClickFolder(row) {
       if (this.device !== 'mobile') {
@@ -435,6 +475,7 @@ export default {
       this.uploadParam.name = file.name
       this.uploadParam.size = file.size
       this.uploadParam.folderId = this.list.id
+      this.uploadDialogVisible = true
       return uploadCheck(this.uploadParam)
     },
     uploadProgress(event, file, fileList) {
@@ -445,7 +486,6 @@ export default {
       console.log('fileList')
       console.log(fileList)
       this.uploadList = fileList
-      this.uploadDialogVisible = true
     },
     uploadSuccess(response, file, fileList) {
       if (response.code === 200) {
@@ -459,6 +499,11 @@ export default {
     uploadError(err, file, fileList) {
       console.log(err)
       this.$message.error(err)
+    },
+    abortUpload(file) {
+      console.log(file)
+      this.$refs['file-upload'].abort(file)
+      file.isabort = true
     },
     deleteItem(row) {
       console.log('delete')
