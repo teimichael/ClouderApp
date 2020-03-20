@@ -24,6 +24,16 @@
     <div v-else-if="previewWindow.type===2">
       <canvas ref="myCanvas" class="pdf-container" />
     </div>
+    <br>
+    <ul>
+      <li><span>文件夹</span> <i class="el-icon-folder" /></li>
+      <li><span>图片</span> <i class="el-icon-picture-outline" /></li>
+      <li><span>视频</span> <i class="el-icon-film" /></li>
+      <li><span>音乐</span> <i class="el-icon-headset" /></li>
+      <li><span>文档</span> <i class="el-icon-document" /></li>
+      <li><span>压缩文件</span> <i class="el-icon-collection" /></li>
+      <li><span>其他文件</span> <i class="el-icon-tickets" /></li>
+    </ul>
   </div>
 </template>
 
