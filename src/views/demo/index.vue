@@ -14,22 +14,22 @@
     <br>
     <el-input v-model="previewParam.itemId" placeholder="itemId" />
     <el-button type="primary" @click="previewItem">预览</el-button>
-    <div v-if="previewWindow.type===1">
-      <el-image :src="previewWindow.obj">
+    <div v-if="previewBinaryWindow.type===1">
+      <el-image :src="previewBinaryWindow.obj">
         <div slot="error" class="image-slot">
           <i class="el-icon-picture-outline" />
         </div>
       </el-image>
     </div>
-    <div v-else-if="previewWindow.type===2">
+    <div v-else-if="previewBinaryWindow.type===2">
       <video-player
         ref="videoPlayer"
         class="video-player-box"
-        :options="previewWindow.playerOptions"
+        :options="previewBinaryWindow.playerOptions"
         :playsinline="true"
       />
     </div>
-    <div v-else-if="previewWindow.type===3">
+    <div v-else-if="previewBinaryWindow.type===3">
       <canvas ref="myCanvas" class="pdf-container" />
     </div>
     <br>
@@ -74,7 +74,7 @@ export default {
       previewParam: {
         itemId: 0
       },
-      previewWindow: {
+      previewBinaryWindow: {
         type: 0,
         obj: '',
         playerOptions: {
@@ -144,20 +144,30 @@ export default {
         if (response.code === 200) {
           console.log(response)
           const data = response.data
-          this.previewWindow.type = data.type
-          switch (this.previewWindow.type) {
+          window.open(data.content, '_blank')
+        } else {
+          this.$message.error(response.message)
+        }
+      })
+    },
+    previewItemByBinary() {
+      previewItem(this.previewParam.itemId).then(response => {
+        if (response.code === 200) {
+          const data = response.data
+          this.previewBinaryWindow.type = data.type
+          switch (this.previewBinaryWindow.type) {
             // Load image
             case 1:
-              this.previewWindow.obj = 'data:image/png;base64,' + data.content
+              this.previewBinaryWindow.obj = 'data:image/png;base64,' + data.content
               break
             // Load video
             case 2:
-              this.previewWindow.playerOptions.sources[0].type = data.contentType
-              this.previewWindow.playerOptions.sources[0].src = data.content
+              this.previewBinaryWindow.playerOptions.sources[0].type = data.contentType
+              this.previewBinaryWindow.playerOptions.sources[0].src = data.content
               break
             // Load PDF
             case 3:
-              this.previewWindow.obj = atob(data.content)
+              this.previewBinaryWindow.obj = atob(data.content)
               this.previewPDF()
               break
           }
@@ -168,7 +178,7 @@ export default {
     },
     previewPDF() {
       const loadingTask = pdfjsLib.getDocument({
-        data: this.previewWindow.obj
+        data: this.previewBinaryWindow.obj
       })
       loadingTask.promise.then((pdf) => {
         const numPages = pdf.numPages
