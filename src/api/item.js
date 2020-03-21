@@ -40,7 +40,7 @@ export function previewItem(itemId) {
 
 export function getItemListByFolderId(data) {
   return request({
-    url: '/item/list/' + data.folderId,
+    url: '/item/in/' + data.folderId + '/list/',
     method: 'get',
     params: {
       folderId: data.folderId,

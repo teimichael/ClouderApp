@@ -22,15 +22,15 @@
       </el-image>
     </div>
     <div v-else-if="previewWindow.type===2">
-      <canvas ref="myCanvas" class="pdf-container" />
-    </div>
-    <div v-else-if="previewWindow.type===3">
       <video-player
         ref="videoPlayer"
         class="video-player-box"
-        :options="playerOptions"
+        :options="previewWindow.playerOptions"
         :playsinline="true"
       />
+    </div>
+    <div v-else-if="previewWindow.type===3">
+      <canvas ref="myCanvas" class="pdf-container" />
     </div>
     <br>
     <ul>
@@ -76,24 +76,24 @@ export default {
       },
       previewWindow: {
         type: 0,
-        obj: ''
-      },
-      playerOptions: {
-        muted: true,
-        language: 'en',
-        preload: 'auto',
-        fluid: true,
-        playbackRates: [0.7, 1.0, 1.5, 2.0],
-        sources: [{
-          type: '',
-          src: ''
-        }],
-        notSupportedMessage: '此视频暂无法播放，请稍后再试',
-        controlBar: {
-          timeDivider: true,
-          durationDisplay: true,
-          remainingTimeDisplay: true,
-          fullscreenToggle: true
+        obj: '',
+        playerOptions: {
+          muted: true,
+          language: 'en',
+          preload: 'auto',
+          fluid: true,
+          playbackRates: [0.7, 1.0, 1.5, 2.0],
+          sources: [{
+            type: '',
+            src: ''
+          }],
+          notSupportedMessage: '此视频暂无法播放，请稍后再试',
+          controlBar: {
+            timeDivider: true,
+            durationDisplay: true,
+            remainingTimeDisplay: true,
+            fullscreenToggle: true
+          }
         }
       }
     }
@@ -145,19 +145,20 @@ export default {
           console.log(response)
           const data = response.data
           this.previewWindow.type = data.type
-          switch (data.type) {
+          switch (this.previewWindow.type) {
             // Load image
             case 1:
               this.previewWindow.obj = 'data:image/png;base64,' + data.content
               break
-            // Load PDF
+            // Load video
             case 2:
+              this.previewWindow.playerOptions.sources[0].type = data.contentType
+              this.previewWindow.playerOptions.sources[0].src = data.content
+              break
+            // Load PDF
+            case 3:
               this.previewWindow.obj = atob(data.content)
               this.previewPDF()
-              break
-            case 3:
-              this.playerOptions.sources[0].type = data.contentType
-              this.playerOptions.sources[0].src = data.content
               break
           }
         } else {
