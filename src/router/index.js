@@ -101,7 +101,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Image',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '图片', icon: 'example' }
+        meta: { title: '图片', icon: 'documentation' }
       }
     ]
   },
@@ -114,7 +114,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Document',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '文档', icon: 'example' }
+        meta: { title: '文档', icon: 'documentation' }
       }
     ]
   },
@@ -127,7 +127,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Bt',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '种子', icon: 'example' }
+        meta: { title: '种子', icon: 'documentation' }
       }
     ]
   },
@@ -140,7 +140,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Music',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '音乐', icon: 'example' }
+        meta: { title: '音乐', icon: 'documentation' }
       }
     ]
   },
@@ -153,7 +153,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Video',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '视频', icon: 'example' }
+        meta: { title: '视频', icon: 'documentation' }
       }
     ]
   },
@@ -166,7 +166,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Others',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '其他', icon: 'example' }
+        meta: { title: '其他', icon: 'documentation' }
       }
     ]
   },
@@ -179,7 +179,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'MyShare',
         /* component: () => import('@/views/file/index'),*/
-        meta: { title: '我的分享', icon: 'example' }
+        meta: { title: '我的分享', icon: 'link' }
       }
     ]
   },

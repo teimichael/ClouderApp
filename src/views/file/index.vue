@@ -74,7 +74,7 @@
       />
       <el-table-column prop="name" label="文件名" sortable>
         <template slot-scope="scope">
-          <el-button type="text" size="mini" @click="clickFolder(scope.row)">{{ scope.row.name }}</el-button>
+          <el-button type="text" :icon="fileIcon(scope.row)" size="mini" @click="clickFolder(scope.row)">{{ scope.row.name }}</el-button>
           <el-container v-if="scope.row.showFunctionBtn" style="float: right">
             <el-tooltip content="分享" placement="bottom" effect="light">
               <el-button type="text" icon="el-icon-share" style="padding: 0" />
@@ -213,7 +213,7 @@
 
 <script>
 import { getFolderContent, createFolder, deleteFolder, renameFolder, getFolderList, moveFolder, copyFolder } from '@/api/folder'
-import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem, renameItem, moveItem, copyItem } from '@/api/item'
+import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem, renameItem, moveItem, copyItem, previewItem } from '@/api/item'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 
@@ -421,6 +421,16 @@ export default {
         }
         this.$store.dispatch('file/pushFileInfo', fileInfo)
         this.$router.push('/file/list/' + row.id)
+      } else {
+        previewItem(row.id).then(response => {
+          if (response.code === 200) {
+            console.log(response)
+            const data = response.data
+            window.open(data.content, '_blank')
+          } else {
+            this.$message.error(response.message)
+          }
+        })
       }
       this.listLoading = false
     },
@@ -783,6 +793,22 @@ export default {
             })
           }
         }
+      }
+    },
+    fileIcon(row) {
+      if (row.type) {
+        switch (row.type) {
+          case 1:
+            return 'el-icon-picture-outline'
+          case 2:
+            return 'el-icon-film'
+          case 3:
+            return 'el-icon-document'
+          default:
+            return 'el-icon-tickets'
+        }
+      } else {
+        return 'el-icon-folder'
       }
     }
   }
