@@ -55,7 +55,7 @@ export const constantRoutes = [
     }]
   },
 
-  {
+  /* {
     path: '/demo',
     component: Layout,
     children: [
@@ -66,17 +66,90 @@ export const constantRoutes = [
         meta: { title: 'Demo', icon: 'example' }
       }
     ]
-  },
+  },*/
 
   {
     path: '/file',
     component: Layout,
+    meta: { title: '全部文件', icon: 'table' },
     children: [
       {
         path: 'index',
         name: 'File',
         component: () => import('@/views/file/index'),
-        meta: { title: '全部文件', icon: 'table' }
+        meta: { title: '全部', icon: 'documentation' }
+      },
+
+      {
+        path: 'image',
+        children: [
+          {
+            path: 'index',
+            name: 'Image',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '图片', icon: 'documentation' }
+          }
+        ]
+      },
+
+      {
+        path: 'document',
+        children: [
+          {
+            path: 'index',
+            name: 'Document',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '文档', icon: 'documentation' }
+          }
+        ]
+      },
+
+      {
+        path: 'bt',
+        children: [
+          {
+            path: 'index',
+            name: 'Bt',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '种子', icon: 'documentation' }
+          }
+        ]
+      },
+
+      {
+        path: 'music',
+        children: [
+          {
+            path: 'index',
+            name: 'Music',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '音乐', icon: 'documentation' }
+          }
+        ]
+      },
+
+      {
+        path: 'video',
+        children: [
+          {
+            path: 'index',
+            name: 'Video',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '视频', icon: 'documentation' }
+          }
+        ]
+      },
+
+      {
+        path: 'others',
+        children: [
+          {
+            path: 'index',
+            name: 'Others',
+            /* component: () => import('@/views/file/index'),*/
+            meta: { title: '其他', icon: 'documentation' }
+          }
+        ]
       }
     ]
   },
@@ -93,83 +166,18 @@ export const constantRoutes = [
     ]
   },
 
-  {
+  /* {
     path: '/file/image',
     component: Layout,
     children: [
       {
         path: 'index',
         name: 'Image',
-        /* component: () => import('@/views/file/index'),*/
+        /!* component: () => import('@/views/file/index'),*!/
         meta: { title: '图片', icon: 'documentation' }
       }
     ]
-  },
-
-  {
-    path: '/file/document',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Document',
-        /* component: () => import('@/views/file/index'),*/
-        meta: { title: '文档', icon: 'documentation' }
-      }
-    ]
-  },
-
-  {
-    path: '/file/bt',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Bt',
-        /* component: () => import('@/views/file/index'),*/
-        meta: { title: '种子', icon: 'documentation' }
-      }
-    ]
-  },
-
-  {
-    path: '/file/music',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Music',
-        /* component: () => import('@/views/file/index'),*/
-        meta: { title: '音乐', icon: 'documentation' }
-      }
-    ]
-  },
-
-  {
-    path: '/file/video',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Video',
-        /* component: () => import('@/views/file/index'),*/
-        meta: { title: '视频', icon: 'documentation' }
-      }
-    ]
-  },
-
-  {
-    path: '/file/others',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Others',
-        /* component: () => import('@/views/file/index'),*/
-        meta: { title: '其他', icon: 'documentation' }
-      }
-    ]
-  },
+  },*/
 
   {
     path: '/mine/share',
@@ -178,7 +186,6 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'MyShare',
-        /* component: () => import('@/views/file/index'),*/
         meta: { title: '我的分享', icon: 'link' }
       }
     ]
@@ -191,7 +198,6 @@ export const constantRoutes = [
       {
         path: 'index',
         name: 'RecycleBin',
-        /* component: () => import('@/views/file/index'),*/
         meta: { title: '回收站', icon: 'example' }
       }
     ]

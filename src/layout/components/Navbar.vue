@@ -14,7 +14,7 @@
       <el-dropdown class="avatar-container" style="margin-top: 5px">
         <span class="el-dropdown-link">
           <img :src="user.avatar" width="40px" height="40px" style="vertical-align:middle">
-          用户名<i class="el-icon-arrow-down el-icon--right" />
+          {{ user.name }}<i class="el-icon-arrow-down el-icon--right" />
         </span>
         <!--<div class="avatar-wrapper">
           <img :src="user.avatar" class="user-avatar">

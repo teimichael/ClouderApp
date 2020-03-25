@@ -219,6 +219,7 @@ import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 import { getLocalTime } from '@/utils/time'
+import { getSize } from '@/utils/size'
 
 export default {
   name: 'Folder',
@@ -818,18 +819,7 @@ export default {
       return getLocalTime(data)
     },
     getSize(data) {
-      if (data) {
-        if (data > (1024 * 1024 * 1024)) {
-          const sizeInG = data / (1024 * 1024 * 1024)
-          return String(sizeInG).slice(0, 5) + 'G'
-        }
-        if (data > (1024 * 1024)) {
-          const sizeInM = data / (1024 * 1024)
-          return String(sizeInM).slice(0, 5) + 'M'
-        }
-        const sizeInKB = data / 1024
-        return String(sizeInKB).slice(0, 5) + 'KB'
-      }
+      return getSize(data)
     }
   }
 }

@@ -15,7 +15,7 @@
         <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path" />
       </el-menu>
     </el-scrollbar>
-    <el-progress class="store-capacity" :text-inside="true" :stroke-width="26" :percentage="70" :format="format" />
+    <el-progress class="store-capacity" :text-inside="true" :stroke-width="26" :percentage="currentPercentage" :format="format" />
   </div>
 </template>
 
@@ -24,9 +24,21 @@ import { mapGetters } from 'vuex'
 import Logo from './Logo'
 import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
+import { getSize } from '@/utils/size'
 
 export default {
   components: { SidebarItem, Logo },
+  data() {
+    return {
+      currentPercentage: 0,
+      userInfo: {
+        depository: {
+          usedSpace: 0,
+          capacity: 0
+        }
+      }
+    }
+  },
   computed: {
     ...mapGetters([
       'sidebar'
@@ -53,16 +65,23 @@ export default {
       return !this.sidebar.opened
     }
   },
+  mounted() {
+    this.userInfo = this.$store.state.user.user
+    this.currentPercentage = (this.userInfo.depository.usedSpace * 100) / this.userInfo.depository.capacity
+  },
   methods: {
     format(percentage) {
-      return `${percentage}% / 总容量`
+      return `${getSize(this.userInfo.depository.usedSpace)} / ${getSize(this.userInfo.depository.capacity)}`
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
   .store-capacity {
     margin: .7rem;
+  }
+  .store-capacity >>> .el-progress-bar__innerText {
+    color: black;
   }
 </style>
