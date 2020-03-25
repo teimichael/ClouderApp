@@ -24,7 +24,6 @@
           </el-dropdown-menu>
         </el-dropdown>
         <el-button icon="el-icon-folder-add" plain @click="createFolderDialogVisible = true">新建文件夹</el-button>
-        <el-button type="text" @click="goParentDirectory()">返回上级目录</el-button>
       </el-col>
       <el-col :span="10">
         <div>
@@ -47,6 +46,9 @@
     <!--path-->
     <el-row style="margin: 1rem">
       <el-breadcrumb separator="/">
+        <el-breadcrumb-item v-if="filePath.length>1">
+          <a @click.prevent="goParentDirectory()">返回上级目录</a>
+        </el-breadcrumb-item>
         <el-breadcrumb-item v-for="(item, index) in filePath" :key="item.id">
           <a @click.prevent="goPathPage(item.id, index)">{{ item.name }}</a>
         </el-breadcrumb-item>
@@ -101,12 +103,12 @@
       </el-table-column>
       <el-table-column prop="size" label="大小" width="160" sortable>
         <template slot-scope="scope">
-          {{ scope.row.size }}
+          {{ getSize(scope.row.size) }}
         </template>
       </el-table-column>
       <el-table-column prop="date" label="修改日期" width="220" sortable>
         <template slot-scope="scope">
-          {{ scope.row.updateDate }}
+          {{ getUpdateTime(scope.row.updateDate) }}
         </template>
       </el-table-column>
     </el-table>
@@ -178,16 +180,16 @@
         </el-table-column>
         <el-table-column property="size" label="文件大小" width="100">
           <template slot-scope="scope">
-            {{ scope.row.size }}
+            {{ getSize(scope.row.size) }}
           </template>
         </el-table-column>
         <el-table-column property="progress" label="下载进度" width="150">
           <template slot-scope="scope">
             {{ scope.row.percentage | uploadProgressEllipsis }}%
             <el-container style="float: right">
-              <el-tooltip content="暂停" placement="bottom" effect="light">
+              <!--<el-tooltip content="暂停" placement="bottom" effect="light">
                 <el-button type="text" icon="el-icon-more" style="padding: 0" />
-              </el-tooltip>
+              </el-tooltip>-->
               <el-tooltip content="取消上传" placement="bottom" effect="light">
                 <el-button type="text" icon="el-icon-delete" style="padding: 0" @click="abortUpload(scope.row)" />
               </el-tooltip>
@@ -216,6 +218,7 @@ import { getFolderContent, createFolder, deleteFolder, renameFolder, getFolderLi
 import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem, renameItem, moveItem, copyItem, previewItem } from '@/api/item'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
+import { getLocalTime } from '@/utils/time'
 
 export default {
   name: 'Folder',
@@ -809,6 +812,23 @@ export default {
         }
       } else {
         return 'el-icon-folder'
+      }
+    },
+    getUpdateTime(data) {
+      return getLocalTime(data)
+    },
+    getSize(data) {
+      if (data) {
+        if (data > (1024 * 1024 * 1024)) {
+          const sizeInG = data / (1024 * 1024 * 1024)
+          return String(sizeInG).slice(0, 5) + 'G'
+        }
+        if (data > (1024 * 1024)) {
+          const sizeInM = data / (1024 * 1024)
+          return String(sizeInM).slice(0, 5) + 'M'
+        }
+        const sizeInKB = data / 1024
+        return String(sizeInKB).slice(0, 5) + 'KB'
       }
     }
   }
