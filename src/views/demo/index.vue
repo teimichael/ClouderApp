@@ -42,6 +42,17 @@
       <li><span>压缩文件</span> <i class="el-icon-collection" /></li>
       <li><span>其他文件</span> <i class="el-icon-tickets" /></li>
     </ul>
+    <!--    <el-dialog-->
+    <!--      :visible.sync="previewWindow.show"-->
+    <!--      fullscreen="true"-->
+    <!--    >-->
+    <!--      <iframe :src="previewWindow.src" frameborder="0" height="500" width="1000" align="middle" />-->
+
+    <!--      <div>-->
+    <!--        <el-button @click="previewWindow.show = false">取 消</el-button>-->
+    <!--        <el-button type="primary" @click="previewWindow.show = false">确 定</el-button>-->
+    <!--      </div>-->
+    <!--    </el-dialog>-->
   </div>
 </template>
 
@@ -73,6 +84,10 @@ export default {
       },
       previewParam: {
         itemId: 0
+      },
+      previewWindow: {
+        show: false,
+        src: ''
       },
       previewBinaryWindow: {
         type: 0,
@@ -144,7 +159,9 @@ export default {
         if (response.code === 200) {
           console.log(response)
           const data = response.data
-          window.open(data.content, '_blank')
+          this.previewWindow.show = true
+          this.previewWindow.src = data.content
+          // window.open(data.content, '_blank')
         } else {
           this.$message.error(response.message)
         }

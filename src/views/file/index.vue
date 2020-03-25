@@ -183,7 +183,7 @@
             {{ getSize(scope.row.size) }}
           </template>
         </el-table-column>
-        <el-table-column property="progress" label="下载进度" width="150">
+        <el-table-column property="progress" label="上传进度" width="150">
           <template slot-scope="scope">
             {{ scope.row.percentage | uploadProgressEllipsis }}%
             <el-container style="float: right">
@@ -800,7 +800,7 @@ export default {
       }
     },
     fileIcon(row) {
-      if (row.type) {
+      if (row.type !== undefined) {
         switch (row.type) {
           case 1:
             return 'el-icon-picture-outline'
