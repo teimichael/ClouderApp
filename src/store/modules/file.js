@@ -1,6 +1,7 @@
 
 const state = {
-  filePathInfo: []
+  filePathInfo: [],
+  refreshList: false
 }
 
 const mutations = {
@@ -9,6 +10,9 @@ const mutations = {
   },
   SET_FILE_PATH_INFO: (state, length) => {
     state.filePathInfo.length = length
+  },
+  SET_REFRESH_LIST: (state, data) => {
+    state.refreshList = data
   }
 }
 
@@ -18,6 +22,9 @@ const actions = {
   },
   setFilePathLength({ commit }, length) {
     commit('SET_FILE_PATH_INFO', length)
+  },
+  setRefreshList({ commit }, data) {
+    commit('SET_REFRESH_LIST', data)
   }
 }
 

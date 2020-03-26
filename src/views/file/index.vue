@@ -1,7 +1,7 @@
 <template>
   <div class="app-container" style="height: 100vh" @click="closeContextmenuFolder">
     <!--top function button-->
-    <el-row style="margin: 1rem">
+    <!--<el-row style="margin: 1rem">
       <el-col :span="12">
         <el-dropdown>
           <el-upload
@@ -42,7 +42,7 @@
           </el-dropdown-menu>
         </el-dropdown>
       </el-col>
-    </el-row>
+    </el-row>-->
     <!--path-->
     <el-row style="margin: 1rem">
       <el-breadcrumb separator="/">
@@ -113,7 +113,7 @@
       </el-table-column>
     </el-table>
     <!--new folder dialog-->
-    <el-dialog title="新建文件夹" :visible.sync="createFolderDialogVisible">
+    <!--<el-dialog title="新建文件夹" :visible.sync="createFolderDialogVisible">
       <el-form :model="createFolderForm">
         <el-form-item label="名称" :label-width="formLabelWidth">
           <el-input v-model="createFolderForm.folderName" autocomplete="off" />
@@ -123,7 +123,7 @@
         <el-button @click="createFolderDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="createFolder()">确 定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog>-->
     <!--rename dialog-->
     <el-dialog title="重命名" :visible.sync="renameDialogVisible">
       <el-form :model="renameForm">
@@ -159,7 +159,7 @@
       </div>
     </el-dialog>
     <!--upload dialog-->
-    <el-dialog
+    <!--<el-dialog
       title="上传列表"
       :visible.sync="uploadDialogVisible"
       :modal="false"
@@ -187,9 +187,9 @@
           <template slot-scope="scope">
             {{ scope.row.percentage | uploadProgressEllipsis }}%
             <el-container style="float: right">
-              <!--<el-tooltip content="暂停" placement="bottom" effect="light">
+              &lt;!&ndash;<el-tooltip content="暂停" placement="bottom" effect="light">
                 <el-button type="text" icon="el-icon-more" style="padding: 0" />
-              </el-tooltip>-->
+              </el-tooltip>&ndash;&gt;
               <el-tooltip content="取消上传" placement="bottom" effect="light">
                 <el-button type="text" icon="el-icon-delete" style="padding: 0" @click="abortUpload(scope.row)" />
               </el-tooltip>
@@ -197,7 +197,7 @@
           </template>
         </el-table-column>
       </el-table>
-    </el-dialog>
+    </el-dialog>-->
     <!--oncontextmenu-->
     <div ref="oncontextmenuInFileList" style="display: none; width:120px; background:#ffffff; position:fixed; left: 500px; top: 500px; box-shadow:1px 1px 1px 1px #807878; z-index: 900">
       <ul style="list-style: none; margin: 0; padding: 0; text-align: center">
@@ -290,6 +290,17 @@ export default {
     },
     uploadUrl: function() {
       return uploadURL(this.uploadParam.folderId)
+    },
+    refreshList: function() {
+      return this.$store.state.file.refreshList
+    }
+  },
+  watch: {
+    refreshList: function(val) {
+      if (val === true) {
+        this.fetchData()
+        this.$store.dispatch('file/setRefreshList', false)
+      }
     }
   },
   mounted() {
