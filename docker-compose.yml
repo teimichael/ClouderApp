@@ -1,0 +1,11 @@
+version: '3'
+services:
+  app:
+    container_name: clouderapp
+    build:
+      context: .
+      # dockerfile: app-buildin-dockerfile
+      dockerfile: app-buildout-dockerfile
+    ports:
+      - 81:80
+    restart: always
