@@ -1,5 +1,6 @@
 <template>
-  <div class="app-container" style="height: 100vh" @click="closeContextmenuFolder">
+  <div class="app-container" @click="closeContextmenuFolder">
+    <!--<div class="app-container" style="height: 100vh;overflow: auto" @click="closeContextmenuFolder">-->
     <!--top function button-->
     <!--<el-row style="margin: 1rem">
       <el-col :span="12">
@@ -44,7 +45,7 @@
       </el-col>
     </el-row>-->
     <!--path-->
-    <el-row style="margin: 1rem">
+    <el-row v-if="$router.currentRoute.meta.fileType === undefined" style="margin: 1rem">
       <el-breadcrumb separator="/">
         <el-breadcrumb-item v-if="filePath.length>1">
           <a @click.prevent="goParentDirectory()">返回上级目录</a>
@@ -79,7 +80,7 @@
           <el-button type="text" :icon="fileIcon(scope.row)" size="mini" @click="clickFolder(scope.row)">{{ scope.row.name }}</el-button>
           <el-container v-if="scope.row.showFunctionBtn" style="float: right">
             <el-tooltip content="分享" placement="bottom" effect="light">
-              <el-button type="text" icon="el-icon-share" style="padding: 0" />
+              <el-button type="text" icon="el-icon-share" style="padding: 0" @click.prevent="shareItem(scope.row)" />
             </el-tooltip>
             <el-tooltip content="下载" placement="bottom" effect="light">
               <el-button type="text" icon="el-icon-download" style="padding: 0" @click.prevent="downloadItem(scope.row)" />
@@ -138,6 +139,21 @@
         <el-button @click="renameDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="renameItem()">确 定</el-button>
       </div>
+    </el-dialog>
+    <!--share dialog-->
+    <el-dialog title="分享" :visible.sync="shareDialogVisible">
+      <el-form :model="shareForm">
+        <el-form-item label="data" :label-width="formLabelWidth">
+          <el-input v-model="shareForm.data" autocomplete="off" disabled />
+        </el-form-item>
+        <el-form-item label="message" :label-width="formLabelWidth">
+          <el-input v-model="shareForm.message" autocomplete="off" disabled />
+        </el-form-item>
+      </el-form>
+      <!--<div slot="footer" class="dialog-footer">
+        <el-button @click="shareDialogVisible = false">取 消</el-button>
+        <el-button type="primary">复制到剪切板</el-button>
+      </div>-->
     </el-dialog>
     <!--folder tree-->
     <el-dialog :title="tree.title" :visible.sync="folderTreeDialogVisible">
@@ -210,16 +226,19 @@
         <li style="border-bottom: solid 1px darkgrey" @click="deleteItem(currentRow)"><el-button type="text" size="medium">删除</el-button></li>
       </ul>
     </div>
+
+    <pagination v-if="totalFiles>0" :total="totalFiles" :page.sync="listQuery.page" :limit.sync="listQuery.size" @pagination="fetchData" />
   </div>
 </template>
 
 <script>
 import { getFolderContent, createFolder, deleteFolder, renameFolder, getFolderList, moveFolder, copyFolder } from '@/api/folder'
-import { uploadCheck, uploadURL, getItemListByFolderId, deleteItem, downloadItem, renameItem, moveItem, copyItem, previewItem } from '@/api/item'
+import { uploadCheck, uploadURL, /* getItemListByFolderId,*/ deleteItem, downloadItem, renameItem, moveItem, copyItem, previewItem, getItemListByItemType, shareItem } from '@/api/item'
 import { Message } from 'element-ui'
 import { mapGetters } from 'vuex'
 import { getLocalTime } from '@/utils/time'
 import { getSize } from '@/utils/size'
+import Pagination from '@/components/Pagination'
 
 export default {
   name: 'Folder',
@@ -232,8 +251,14 @@ export default {
       return value
     }
   },
+  components: { Pagination },
   data() {
     return {
+      totalFiles: 0,
+      listQuery: {
+        page: 0,
+        size: 20
+      },
       searchContent: '',
       filePath: [],
       list: {
@@ -249,9 +274,14 @@ export default {
         path: ''
       },
       renameDialogVisible: false,
+      shareDialogVisible: false,
       renameForm: {
         oldName: '',
         newName: ''
+      },
+      shareForm: {
+        data: '',
+        message: ''
       },
       formLabelWidth: '120px',
       uploadHeader: {
@@ -276,7 +306,12 @@ export default {
       selectOrg: {
         orgId: []
       },
-      currentRow: {}
+      currentRow: {},
+      listInfo: {
+        itemType: -1,
+        page: 0,
+        size: 20
+      }
     }
   },
   computed: {
@@ -306,6 +341,7 @@ export default {
   mounted() {
     this.uploadHeader.Authorization = this.token
     console.log('filePathInfo')
+    console.log(this.$router.currentRoute.meta.fileType)
     console.log(this.filePathInfo)
     /* 判断是否为文件首页*/
     if (!this.$router.currentRoute.params.id) {
@@ -342,38 +378,63 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
-      this.list.data = []
-      const currentFolderInfo = {
-        folderId: this.list.id,
-        page: 0,
-        size: 20
-      }
-      getFolderContent(currentFolderInfo).then(response => {
-        console.log('Folder content')
-        console.log(response)
-        this.list.data = response.data.folders
-        this.list.data.push(...response.data.items.content)
-        if (response.data.items.totalPages !== 1) {
-          for (let i = 1; i < response.data.items.totalPages; i++) {
-            const folderInfo = {
-              folderId: this.list.id,
-              page: i,
-              size: 20
-            }
-            getItemListByFolderId(folderInfo).then(response => {
-              console.log('Item list')
-              console.log(response)
-              this.list.data.push(...response.data.content)
-            }).catch(error => {
-              console.log(error)
-            })
-          }
+      if (this.$router.currentRoute.meta.fileType === undefined) {
+        this.list.data = []
+        const currentFolderInfo = {
+          folderId: this.list.id,
+          page: this.listQuery.page,
+          size: this.listQuery.size
         }
-        this.listLoading = false
-      }).catch(error => {
-        console.log(error)
-        this.listLoading = false
-      })
+        if (currentFolderInfo.page !== 0) {
+          currentFolderInfo.page--
+        }
+        console.log(currentFolderInfo)
+        getFolderContent(currentFolderInfo).then(response => {
+          console.log('Folder content')
+          console.log(response)
+          if (currentFolderInfo.page === 0) {
+            this.list.data = response.data.folders
+            this.list.data.push(...response.data.items.content)
+            this.totalFiles = response.data.items.totalElements
+          } else {
+            this.list.data = response.data.items.content
+          }
+          /* if (response.data.items.totalPages !== 1) {
+            for (let i = 1; i < response.data.items.totalPages; i++) {
+              const folderInfo = {
+                folderId: this.list.id,
+                page: i,
+                size: 20
+              }
+              getItemListByFolderId(folderInfo).then(response => {
+                console.log('Item list')
+                console.log(response)
+                this.list.data.push(...response.data.content)
+              }).catch(error => {
+                console.log(error)
+              })
+            }
+          }*/
+          this.listLoading = false
+        }).catch(error => {
+          console.log(error)
+          this.listLoading = false
+        })
+      } else {
+        this.listInfo.itemType = this.$router.currentRoute.meta.fileType
+        this.listInfo.page = this.listQuery.page
+        this.listInfo.size = this.listQuery.size
+        if (this.listInfo.page !== 0) {
+          this.listInfo.page--
+        }
+        getItemListByItemType(this.listInfo).then(res => {
+          console.log('Image List')
+          console.log(res)
+          this.list.data = res.data.content
+          this.totalFiles = res.data.totalElements
+          this.listLoading = false
+        })
+      }
       /* getFolderList(this.list.id).then(response => {
         console.log('Folder list')
         console.log(response)
@@ -606,6 +667,21 @@ export default {
             duration: 5 * 1000
           })
         })
+      }
+    },
+    shareItem(row) {
+      console.log('share')
+      if (row.suffix) {
+        shareItem(row.id).then(res => {
+          console.log(res)
+          this.shareForm.data = res.data
+          this.shareForm.message = res.message
+          this.shareDialogVisible = true
+        }).catch(error => {
+          console.log(error)
+        })
+      } else {
+        console.log('无法分享文件夹')
       }
     },
     downloadItem(row) {

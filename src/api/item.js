@@ -1,5 +1,16 @@
 import request from '@/utils/request'
 
+export function getItemListByItemType(data) {
+  return request({
+    url: '/item/' + data.itemType + '/list',
+    method: 'get',
+    params: {
+      page: data.page,
+      size: data.size
+    }
+  })
+}
+
 export function copyItem(data) {
   return request({
     url: '/item/copy/' + data.itemId + '/to/' + data.destFolderId,
@@ -69,6 +80,13 @@ export function renameItem(data) {
       itemId: data.itemId,
       name: data.name
     }
+  })
+}
+
+export function shareItem(itemId) {
+  return request({
+    url: '/item/share/' + itemId,
+    method: 'get'
   })
 }
 

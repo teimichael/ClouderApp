@@ -82,26 +82,16 @@ export const constantRoutes = [
 
       {
         path: 'image',
-        children: [
-          {
-            path: 'index',
-            name: 'Image',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '图片', icon: 'documentation' }
-          }
-        ]
+        name: 'Image',
+        component: () => import('@/views/file/index'),
+        meta: { title: '图片', icon: 'documentation', fileType: 1 }
       },
 
       {
         path: 'document',
-        children: [
-          {
-            path: 'index',
-            name: 'Document',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '文档', icon: 'documentation' }
-          }
-        ]
+        name: 'Document',
+        component: () => import('@/views/file/index'),
+        meta: { title: '文档', icon: 'documentation', fileType: 3 }
       },
 
       {
@@ -130,14 +120,9 @@ export const constantRoutes = [
 
       {
         path: 'video',
-        children: [
-          {
-            path: 'index',
-            name: 'Video',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '视频', icon: 'documentation' }
-          }
-        ]
+        name: 'Video',
+        component: () => import('@/views/file/index'),
+        meta: { title: '视频', icon: 'documentation', fileType: 2 }
       },
 
       {
