@@ -1,14 +1,11 @@
 export function getSize(data) {
-  if (data) {
-    if (data > (1024 * 1024 * 1024)) {
-      const sizeInG = data / (1024 * 1024 * 1024)
-      return sizeInG.toFixed(2) + 'G'
+  if (data !== undefined) {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB']
+    let i = 0
+    while (Math.floor(data / 1024) !== 0) {
+      i += 1
+      data /= 1024
     }
-    if (data > (1024 * 1024)) {
-      const sizeInM = data / (1024 * 1024)
-      return sizeInM.toFixed(2) + 'M'
-    }
-    const sizeInKB = data / 1024
-    return sizeInKB.toFixed(2) + 'KB'
+    return data.toFixed(2) + units[i]
   }
 }

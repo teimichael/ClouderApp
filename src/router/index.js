@@ -91,31 +91,21 @@ export const constantRoutes = [
         path: 'document',
         name: 'Document',
         component: () => import('@/views/file/index'),
-        meta: { title: '文档', icon: 'documentation', fileType: 3 }
+        meta: { title: '文档', icon: 'documentation', fileType: 4 }
       },
 
       {
-        path: 'bt',
-        children: [
-          {
-            path: 'index',
-            name: 'Bt',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '种子', icon: 'documentation' }
-          }
-        ]
+        path: 'compressed',
+        name: 'Compressed',
+        component: () => import('@/views/file/index'),
+        meta: { title: '压缩包', icon: 'documentation', fileType: 5 }
       },
 
       {
         path: 'music',
-        children: [
-          {
-            path: 'index',
-            name: 'Music',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '音乐', icon: 'documentation' }
-          }
-        ]
+        name: 'Music',
+        component: () => import('@/views/file/index'),
+        meta: { title: '音乐', icon: 'documentation', fileType: 3 }
       },
 
       {
@@ -127,14 +117,9 @@ export const constantRoutes = [
 
       {
         path: 'others',
-        children: [
-          {
-            path: 'index',
-            name: 'Others',
-            /* component: () => import('@/views/file/index'),*/
-            meta: { title: '其他', icon: 'documentation' }
-          }
-        ]
+        name: 'Others',
+        component: () => import('@/views/file/index'),
+        meta: { title: '其他', icon: 'documentation', fileType: 0 }
       }
     ]
   },

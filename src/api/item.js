@@ -11,6 +11,18 @@ export function getItemListByItemType(data) {
   })
 }
 
+/* int NO_TYPE = 0;
+
+int IMAGE = 1;
+
+int VIDEO = 2;
+
+int AUDIO = 3;
+
+int DOCUMENT = 4;
+
+int COMPRESSED = 5;*/
+
 export function copyItem(data) {
   return request({
     url: '/item/copy/' + data.itemId + '/to/' + data.destFolderId,
